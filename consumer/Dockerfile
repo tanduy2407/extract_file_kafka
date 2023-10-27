@@ -1,2 +1,5 @@
 FROM python:3.10.8
-RUN pip install -r requirement.txt
+WORKDIR /app
+COPY requirements.txt .
+COPY consumer.py .
+RUN pip install -r requirements.txt

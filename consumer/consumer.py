@@ -2,15 +2,13 @@ from kafka import KafkaConsumer, TopicPartition
 from json import loads
 import io
 import pandas as pd
-from producer import get_database_engine
+from producer.producer import get_database_engine
 from config import config
 import gzip
 import logging
-import time
 
 logging.basicConfig(level=logging.INFO,
 					format='%(asctime)s:%(funcName)s:%(levelname)s:%(message)s')
-
 
 def get_file(id: str):
 	"""
@@ -100,4 +98,4 @@ def consume_data(topic: str, bootstrap_servers: list[str]):
 
 if __name__ == '__main__':
 	offset_file = 'offset.txt'
-	consume_data('extract_data', ['localhost:9092'])
+	consume_data('extract_data', ['kafka:19092'])
