@@ -27,6 +27,22 @@ services:
     networks:
       - kafka-network
 
+  producer:
+    build:
+      context: ./producer
+    depends_on:
+      - kafka
+    networks:
+      - kafka-network
+
+  consumer:
+    build:
+      context: ./consumer
+    depends_on:
+      - kafka
+    networks:
+      - kafka-network
+
   kafka-connect:
     image: confluentinc/cp-kafka-connect:7.3.2
     ports:

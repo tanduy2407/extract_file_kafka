@@ -60,7 +60,7 @@ def get_id() -> list[int | str]:
 	return ids
 
 
-def produce_data_to_kafka(document_ids: list[int], topic, bootstrap_servers: list[str]):
+def produce_data_to_kafka(document_ids: list[int], topic: str, bootstrap_servers: list[str]):
 	"""
     Produces document IDs to a Kafka topic.
 

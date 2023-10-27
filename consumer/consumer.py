@@ -6,6 +6,7 @@ from producer import get_database_engine
 from config import config
 import gzip
 import logging
+import time
 
 logging.basicConfig(level=logging.INFO,
 					format='%(asctime)s:%(funcName)s:%(levelname)s:%(message)s')
@@ -28,7 +29,7 @@ def get_file(id: str):
 		join dAttachment a on ab.intAttachmentId = a.intAttachmentId
 		where ab.intAttachmentId = {id}"""
 	df = pd.read_sql(sql, db_engine)
-	dest_path = 'D:\\extract_docs_kafka\\file\\'
+	dest_path = 'D:\\extract_file_kafka\\file\\'
 	data = df.values
 	file_name = data[0][0]
 	varbinary = data[0][1]
@@ -49,10 +50,10 @@ def save_offset(offset: int):
         offset (int): The offset value to be saved.
     """
 	with open(offset_file, 'w') as f:
-		f.write(str(offset))
+		f.write(offset)
 
 
-def read_offset():
+def read_offset() -> int | None:
 	"""
     Reads the last saved offset from the file.
     
@@ -76,27 +77,27 @@ def consume_data(topic: str, bootstrap_servers: list[str]):
         bootstrap_servers (list[str]): List of Kafka broker addresses.
     """
 	logging.info('Start consume data...')
-	current_offset = read_offset()
-	if current_offset is None:
-		current_offset = 0
+	offset = read_offset()
+	if offset is None:
+		offset = 0
 	consumer = KafkaConsumer(bootstrap_servers=bootstrap_servers,
 							 value_deserializer=lambda x: loads(x.decode('utf-8')))
 
 	partition = TopicPartition(topic, 0)
 	consumer.assign([partition])
-	consumer.seek(partition=partition, offset=current_offset)
+	consumer.seek(partition=partition, offset=offset)
 
 	for message in consumer:
 		offset = message.offset
 		id = message.value
 		print(f"Offset: {offset}, Value: {id}")
 		get_file(id)
-		save_offset(offset)
+		next_offset = offset+1
+		save_offset(next_offset)
 
 	consumer.close()
 
 
 if __name__ == '__main__':
 	offset_file = 'offset.txt'
-	
 	consume_data('extract_data', ['localhost:9092'])
