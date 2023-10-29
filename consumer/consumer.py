@@ -2,7 +2,7 @@ from kafka import KafkaConsumer, TopicPartition
 from json import loads
 import io
 import pandas as pd
-from producer.producer import get_database_engine
+from producer import get_database_engine
 from config import config
 import gzip
 import logging
@@ -27,11 +27,12 @@ def get_file(id: str):
 		join dAttachment a on ab.intAttachmentId = a.intAttachmentId
 		where ab.intAttachmentId = {id}"""
 	df = pd.read_sql(sql, db_engine)
-	dest_path = 'D:\\extract_file_kafka\\file\\'
+	dest_path = 'file/'
 	data = df.values
 	file_name = data[0][0]
 	varbinary = data[0][1]
 	file_path = dest_path + file_name
+	print(file_path)
 	try:
 		with gzip.GzipFile(fileobj=io.BytesIO(varbinary), mode='rb') as f_in:
 			with open(file_path, 'wb') as f_out:
@@ -48,7 +49,7 @@ def save_offset(offset: int):
         offset (int): The offset value to be saved.
     """
 	with open(offset_file, 'w') as f:
-		f.write(offset)
+		f.write(str(offset))
 
 
 def read_offset() -> int | None:
@@ -76,6 +77,7 @@ def consume_data(topic: str, bootstrap_servers: list[str]):
     """
 	logging.info('Start consume data...')
 	offset = read_offset()
+	print(offset)
 	if offset is None:
 		offset = 0
 	consumer = KafkaConsumer(bootstrap_servers=bootstrap_servers,

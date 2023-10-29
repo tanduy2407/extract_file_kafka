@@ -57,8 +57,8 @@ def get_id() -> list[int | str]:
     sql = """select top 100 intAttachmentId from dAttachmentBinaryDocuments"""
     df = pd.read_sql(sql, db_engine)
     col_name = df.columns[0]
-    ids = df[col_name].to_list()
-    return ids
+    document_ids = df[col_name].to_list()
+    return document_ids
 
 
 def produce_data_to_kafka(document_ids: list[int], topic: str, bootstrap_servers: list[str]):
@@ -76,6 +76,7 @@ def produce_data_to_kafka(document_ids: list[int], topic: str, bootstrap_servers
         producer.send(topic, json.dumps(str(document_id)).encode('utf-8'))
         producer.flush()
         time.sleep(2)
+    logging.info('Produce data complete')
 
 
 if __name__ == '__main__':

@@ -3,3 +3,4 @@ file
 config.py
 __pycache__
 .idea
+consumer/offset.txt

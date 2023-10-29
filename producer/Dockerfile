@@ -3,3 +3,4 @@ WORKDIR /app
 COPY requirements.txt .
 COPY producer.py .
 RUN pip install -r requirements.txt
+CMD [ "python" , "producer.py" ]
