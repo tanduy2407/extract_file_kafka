@@ -5,18 +5,19 @@ import sqlalchemy
 import pandas as pd
 import time
 import logging
+from typing import List, Union, Dict
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s:%(funcName)s:%(levelname)s:%(message)s')
 
 
-def get_database_engine(config: dict):
+def get_database_engine(config: Dict):
     """
     Establishes a connection to the database based on the provided configuration.
-    
+
     Args:
         config (dict): Dictionary containing database connection details.
-        
+
     Returns:
         sqlalchemy.engine.Engine: Database engine object for executing SQL queries.
     """
@@ -46,22 +47,23 @@ def get_database_engine(config: dict):
     return engine
 
 
-def get_id() -> list[int | str]:
+def get_id() -> List[Union[int, str]]:
     """
     Retrieves a list of document IDs from the database.
-    
+
     Returns:
         list[int | str]: List of document IDs.
     """
     db_engine = get_database_engine(config)
-    sql = """select top 100 intAttachmentId from dAttachmentBinaryDocuments"""
+    sql = """select top 10 intAttachmentId from dAttachmentBinaryDocuments"""
     df = pd.read_sql(sql, db_engine)
     col_name = df.columns[0]
     document_ids = df[col_name].to_list()
-    return document_ids
+    no_records = len(document_ids)
+    return document_ids, no_records
 
 
-def produce_data_to_kafka(document_ids: list[int], topic: str, bootstrap_servers: list[str]):
+def produce_data_to_kafka(document_ids: List[int], topic: str, bootstrap_servers: List[str]):
     """
     Produces document IDs to a Kafka topic.
 
@@ -76,11 +78,11 @@ def produce_data_to_kafka(document_ids: list[int], topic: str, bootstrap_servers
         producer.send(topic, json.dumps(str(document_id)).encode('utf-8'))
         producer.flush()
         time.sleep(2)
-    logging.info('Produce data complete')
+    logging.info('Produce data completely')
 
 
 if __name__ == '__main__':
-    ids = get_id()
+    ids, no_records = get_id()
     produce_data_to_kafka(ids, 'extract_data', ['kafka:19092'])
 
 # kafka-server-start.bat D:\Apps\Kafka\config\server.properties
