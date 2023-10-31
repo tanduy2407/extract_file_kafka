@@ -47,7 +47,7 @@ def get_database_engine(config: Dict):
     return engine
 
 
-def get_id() -> List[Union[int, str]]:
+def get_document_id() -> List[Union[int, str]]:
     """
     Retrieves a list of document IDs from the database.
 
@@ -60,7 +60,8 @@ def get_id() -> List[Union[int, str]]:
     col_name = df.columns[0]
     document_ids = df[col_name].to_list()
     no_records = len(document_ids)
-    return document_ids, no_records
+    logging.info(f'Total documents to produce: {no_records}')
+    return document_ids
 
 
 def produce_data_to_kafka(document_ids: List[int], topic: str, bootstrap_servers: List[str]):
@@ -82,8 +83,10 @@ def produce_data_to_kafka(document_ids: List[int], topic: str, bootstrap_servers
 
 
 if __name__ == '__main__':
-    ids, no_records = get_id()
-    produce_data_to_kafka(ids, 'extract_data', ['kafka:19092'])
+    document_ids = get_document_id()
+    produce_data_to_kafka(document_ids, 'extract_data', ['kafka:19092'])
+    # produce_data_to_kafka(document_ids, 'extract_data', ['localhost:9092'])
 
-# kafka-server-start.bat D:\Apps\Kafka\config\server.properties
+
 # zookeeper-server-start.bat D:\Apps\Kafka\config\zookeeper.properties
+# kafka-server-start.bat D:\Apps\Kafka\config\server.properties
