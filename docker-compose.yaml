@@ -41,7 +41,6 @@ services:
     build:
       context: ./consumer
     volumes:
-      - ./consumer/offset.txt:/app/offset.txt
       - ./config.py:/app/config.py
       - ./producer/producer.py:/app/producer.py
       - ./consumer/file:/app/file

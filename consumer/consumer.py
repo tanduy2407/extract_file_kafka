@@ -22,12 +22,11 @@ def get_file(id: str):
     Raises:
         gzip.BadGzipFile: If the extracted file is not a valid GZIP file.
     """
-    db_engine = get_database_engine(config)
     sql = f"""
         SELECT vchAttachmentName, convert(varbinary(max), binDocbytes, 1) as binDocBytes
         FROM dAttachmentBinaryDocuments ab
-        join dAttachment a on ab.intAttachmentId = a.intAttachmentId
-        where ab.intAttachmentId = {id}"""
+        JOIN dAttachment a on ab.intAttachmentId = a.intAttachmentId
+        WHERE ab.intAttachmentId = {id}"""
     df = pd.read_sql(sql, db_engine)
     dest_path = 'file/'
     data = df.values
@@ -39,7 +38,7 @@ def get_file(id: str):
             with open(file_path, 'wb') as f_out:
                 f_out.write(f_in.read())
     except gzip.BadGzipFile as err:
-        logging.warn(f"{err}{file_name} can't be extract")
+        logging.warn(f"{err}. {file_name} can't be extract")
 
 
 def save_offset(offset: int):
@@ -67,7 +66,12 @@ def read_offset() -> int:
 
 
 def get_no_documents() -> int:
-    db_engine = get_database_engine(config)
+    """
+    Retrieves the total number of documents.
+
+    Returns:
+        int: The total number of documents
+    """
     sql = """select count(1) from dAttachmentBinaryDocuments"""
     df = pd.read_sql(sql, db_engine)
     col_name = df.columns[0]
@@ -96,7 +100,6 @@ def consume_data(topic: str, bootstrap_servers: List[str]):
     for message in consumer:
         offset = message.offset
         id = message.value
-        print(f"Offset: {offset}, Value: {id}")
         get_file(id)
         next_offset = offset+1
         # close the consume after consume the last offset
@@ -109,4 +112,5 @@ def consume_data(topic: str, bootstrap_servers: List[str]):
 
 
 if __name__ == '__main__':
+    db_engine = get_database_engine(config)
     consume_data('extract_data', ['kafka:19092'])
